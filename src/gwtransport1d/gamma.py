@@ -1,6 +1,8 @@
 """Functions for working with gamma distributions."""
 
 import logging
+import pandas as pd
+from typing import Tuple, Dict, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +21,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger("matplotlib.font_manager").disabled = True
 
 
-def gamma_mean_std_to_alpha_beta(mean, std):
+def gamma_mean_std_to_alpha_beta(mean: float, std: float) -> Tuple[float, float]:
     """
     Convert mean and standard deviation of gamma distribution to shape and scale parameters.
 
@@ -40,7 +42,7 @@ def gamma_mean_std_to_alpha_beta(mean, std):
     return alpha, beta
 
 
-def gamma_alpha_beta_to_mean_std(alpha, beta):
+def gamma_alpha_beta_to_mean_std(alpha: float, beta: float) -> Tuple[float, float]:
     """
     Convert shape and scale parameters of gamma distribution to mean and standard deviation.
 
@@ -61,7 +63,7 @@ def gamma_alpha_beta_to_mean_std(alpha, beta):
     return mean, std
 
 
-def cout_advection_gamma(cin, flow, alpha, beta, n_bins=100, retardation_factor=1.0):
+def cout_advection_gamma(cin: pd.Series, flow: pd.Series, alpha: float, beta: float, n_bins: int = 100, retardation_factor: float = 1.0) -> pd.Series:
     """
     Compute the concentration of the extracted water by shifting cin with its residence time.
 
@@ -94,7 +96,7 @@ def cout_advection_gamma(cin, flow, alpha, beta, n_bins=100, retardation_factor=
     return cout_advection_distribution(cin, flow, bins["edges"], retardation_factor=retardation_factor)
 
 
-def gamma_equal_mass_bins(alpha, beta, n_bins):
+def gamma_equal_mass_bins(alpha: float, beta: float, n_bins: int) -> Dict[str, Any]:
     """
     Divide gamma distribution into n bins with equal probability mass.
 
@@ -134,7 +136,7 @@ def gamma_equal_mass_bins(alpha, beta, n_bins):
     }
 
 
-def bin_masses(alpha, beta, bin_edges):
+def bin_masses(alpha: float, beta: float, bin_edges: np.ndarray) -> np.ndarray:
     """
     Calculate probability mass for each bin in gamma distribution.
 
