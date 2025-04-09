@@ -166,12 +166,39 @@ def bin_masses(alpha, beta, bin_edges):
 
 
 # Example usage
-if __name__ == "__main__":
-    # Example parameters
-    alpha = 300.0
-    beta = 15.0
-    n_bins = 12
+def print_gamma_bins(alpha=None, beta=None, mean=None, std=None, n_bins=None, logger=None):
+    """
+    Print the gamma distribution divided into n equal-mass bins.
 
+    Parameters
+    ----------
+    alpha : float
+        Shape parameter of gamma distribution (must be > 0)
+    beta : float
+        Scale parameter of gamma distribution (must be > 0)
+    mean : float
+        Mean of the gamma distribution.
+    std : float
+        Standard deviation of the gamma distribution.
+    n_bins : int
+        Number of bins to divide the gamma distribution.
+    logger : logging.Logger
+        Logger instance to log the output. If None, a default logger is created.
+    """
+    if logger is None:
+        logger = logging.getLogger(__name__)
+    if alpha is None and beta is None:
+        alpha, beta = gamma_mean_std_to_alpha_beta(mean, std)
+    if mean is None and std is None:
+        mean, std = gamma_alpha_beta_to_mean_std(alpha, beta)
+    if alpha is None or beta is None:
+        msg = "Either (alpha, beta) or (mean, std) must be provided"
+        raise ValueError(msg)
+    if n_bins is None:
+        msg = "Number of bins must be provided"
+        raise ValueError(msg)
+
+    alpha, beta = gamma_mean_std_to_alpha_beta(mean, std)
     bins = gamma_equal_mass_bins(alpha, beta, n_bins)
 
     logger.info("Gamma distribution (alpha=%s, beta=%s) divided into %d equal-mass bins:", alpha, beta, n_bins)
@@ -200,14 +227,33 @@ if __name__ == "__main__":
     logger.info("Probability mass per bin:")
     logger.info(mass_per_bin)
 
+
+if __name__ == "__main__":
+    # Example parameters
+    mean = 10.0
+    std = 5.0
+    n_bins = 12
+    print_gamma_bins(mean=mean, std=std, n_bins=n_bins)
+
+    alpha, beta = gamma_mean_std_to_alpha_beta(mean, std)
+    bins = gamma_equal_mass_bins(alpha, beta, n_bins)
+
     # plot the gamma distribution and the bins
-    x = np.linspace(0, 530, 1000)
+    x = np.linspace(0, bins["expected_value"][-1], 1000)
     y = gamma_dist.pdf(x, alpha, scale=beta)
     plt.plot(x, y, label="Gamma PDF")
+    bins["upper_bound"][-1] = bins["expected_value"][-1]  # to avoid plotting inf
     for i in range(n_bins):
-        plt.axvline(bins["lower_bound"][i], color="black", linestyle="--", alpha=0.5)
-        plt.axvline(bins["upper_bound"][i], color="black", linestyle="--", alpha=0.5)
-        plt.axvline(bins["expected_value"][i], color="red", linestyle="--", alpha=0.5)
+        height = bins["probability_mass"][i] / (bins["upper_bound"][i] - bins["lower_bound"][i])
+        plt.fill_between(
+            [bins["lower_bound"][i], bins["upper_bound"][i]],
+            0,
+            height,
+            alpha=0.4,
+            facecolor="C1",
+            edgecolor="black",
+        )
+        plt.axvline(bins["expected_value"][i], color="C2", linestyle="--", alpha=0.5)
     plt.xlabel("x")
     plt.ylabel("f(x)")
     plt.legend()
